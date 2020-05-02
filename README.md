@@ -4,14 +4,15 @@ Arduino Due firmware for [4WD rover kit](https://www.banggood.com/DIY-4WD-Smart-
 
 Current implementation status:
 
-| Feature                                            | Status             |
-| -------------------------------------------------- | ------------------ |
-| Telecommand and Telemetry serial interface.        | :heavy_check_mark: |
-| Motor control with L298N.                          | :heavy_check_mark: |
-| Navigation & State Estimation - AHRS with MPU9250. |                    |
-| Navigation & State Estimation - GPS.               |                    |
-| Navigation & State Estimation - Wheel encoders.    |                    |
-| Navigation & State Estimation - Data fusion.       |                    |
+| Feature                                                    | Status             |
+| ---------------------------------------------------------- | ------------------ |
+| Telecommand and Telemetry serial interface.                | :heavy_check_mark: |
+| Basic motor control with L298N.                            | :heavy_check_mark: |
+| Motor control with velocity profiles.                      |                    |
+| Navigation & State Estimation - AHRS with MPU9250.         |                    |
+| Navigation & State Estimation - GPS.                       |                    |
+| Navigation & State Estimation - Odometry (wheel encoders). |                    |
+| Navigation & State Estimation - Data fusion.               |                    |
 
 ## Dependencies
 
@@ -89,12 +90,12 @@ With Car facing forwards: LF=Left/Front, RB=Right/Back,etc.
 
 ### Commands
 
-| Opcode                   | Description                                                 | Parameters         |
-| ------------------------ | ----------------------------------------------------------- | ------------------ |
-| 0x00 REQUEST_TMY         | Request telemetry. A general telemetry report is generated. | None.              |
-| 0x01 LED_ON              | Turn on test led.                                           | None.              |
-| 0x02 LED_OFF             | Turn off test led.                                          | None.              |
-| 0x03 UPDATE_MOTOR_SPEEDS | Update motor speeds.                                        | See details below. |
+| Opcode | Mnemonic            | Description                                                 | Parameters         |
+| ------ | ------------------- | ----------------------------------------------------------- | ------------------ |
+| 0x00   | REQUEST_TMY         | Request telemetry. A general telemetry report is generated. | None.              |
+| 0x01   | LED_ON              | Turn on test led.                                           | None.              |
+| 0x02   | LED_OFF             | Turn off test led.                                          | None.              |
+| 0x03   | UPDATE_MOTOR_SPEEDS | Update motor speeds.                                        | See details below. |
 
 #### 0x03 UPDATE_MOTOR_SPEEDS
 
@@ -112,7 +113,12 @@ Update motor speed values. Each motor speed is specified as an int16 from -255 t
 
 #### 0x00 GENERAL_TELEMETRY_REPORT
 
-TODO.
+| Offset | Parameter                  | Description                                                  |
+| ------ | -------------------------- | ------------------------------------------------------------ |
+| 0      | TMY_PARAM_ACCEPTED_PACKETS | Accepted packets (telemetry request do not increase this counter). |
+| 1      | TMY_PARAM_REJECTED_PACKETS | Rejected packets (telemetry request do not increase this counter). |
+| 2      | TMY_PARAM_LAST_OPCODE      | Last opcode received.                                        |
+| 3      | TMY_PARAM_LAST_ERROR       | Error code from last opcode executed.                        |
 
 ## Firmware build instructions
 
@@ -133,4 +139,11 @@ arduino-cli upload -p /dev/ttyACM0 --fqbn arduino:sam:arduino_due_x rover-firmwa
 ~~~
 
 ## Firmware tests
+
+See [RoverBasicBenchTest.ipynb](python/RoverBasicBenchTest.ipynb)
+
+```bash
+cd python
+jupyter notebook
+```
 
