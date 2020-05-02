@@ -1,0 +1,4 @@
+*.elf
+*.hex
+.ipynb_checkpoints
+__pycache__
