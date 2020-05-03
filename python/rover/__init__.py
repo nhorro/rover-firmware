@@ -1,4 +1,4 @@
-from serialprotocol import Connection, build_packet
+from .serialprotocol import Connection, build_packet
 import time
 
 DEFAULT_ROVER_PORT = '/dev/ttyACM0'
@@ -17,8 +17,11 @@ class RoverClient(Connection):
         Connection.__init__(self,port,baudrate, self.on_data_received)
 
     # Basic Protocol Leds and TMY
-    def request_tmy(self):
-        pkt = build_packet([RoverClient.CMD_REQUEST_TMY])
+    def request_tmy(self, report_type=0):
+        pkt = build_packet([
+            RoverClient.CMD_REQUEST_TMY,
+            report_type
+            ])
         self.send_packet(pkt)
 
     def led_on(self):

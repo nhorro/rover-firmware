@@ -2,11 +2,16 @@ import serial, time
 from threading import Thread
 
 # Connection Settings
-DEFAULT_SERIAL_PORT = '/dev/ttyACM0'
+DEFAULT_SERIAL_PORT = '/dev/serial0'
 DEFAULT_BAUDRATE = 115200
 
 # Protocol Settings
-PACKET_HEADER=[ ord('P'), ord('K'), ord('T'), ord('!')]
+PACKET_SYNC_0_CHAR = 'P';
+PACKET_SYNC_1_CHAR = 'K';
+PACKET_SYNC_2_CHAR = 'T';
+PACKET_SYNC_3_CHAR = '!';
+PACKET_TERMINATOR_CHAR = '\n';
+PACKET_HEADER=[  ord(PACKET_SYNC_0_CHAR),  ord(PACKET_SYNC_1_CHAR), ord(PACKET_SYNC_2_CHAR), ord(PACKET_SYNC_3_CHAR) ]
 HEADER_SIZE = len(PACKET_HEADER)+1
 TRAILER_SIZE = 3 
 
@@ -30,6 +35,12 @@ def crc16(buf):
     return crc
 
 def get_packet_payload(pkt):
+    # FIXME Convert to integer list
+    pkt_as_ints = []
+    for x in pkt:
+        pkt_as_ints.append(ord(x))
+    pkt = pkt_as_ints
+
     tmp = []
     if ( len(pkt) > (HEADER_SIZE) ):
         if ( (pkt[0] == PACKET_HEADER[0]) and
@@ -38,14 +49,19 @@ def get_packet_payload(pkt):
              (pkt[3] == PACKET_HEADER[3]) ):
                 #print("Valid header")
                 length = pkt[4]
+                expected_packet_length = (HEADER_SIZE+length+TRAILER_SIZE)
                 #print("Length:", pkt[4])                
-                if len(pkt) >= (HEADER_SIZE+length+TRAILER_SIZE):
+                if len(pkt) >= expected_packet_length:
                     for x in range(length):
                         tmp.append(pkt[HEADER_SIZE+x])
                 else:
-                    raise ValueError("Invalid Size")
+                    print("Invalid packet length: ", length, ". Expected: ", expected_packet_length)
+                    tmp = "Received: "
+                    for x in pkt:
+                        tmp+="%02X " % x
+                    print(tmp)
         else:
-            print("Header does not match:", pkt)
+            print("Header mismatch. Received packet:", pkt) # TODO: log
     return tmp
 
 class Connection(Thread):
@@ -88,6 +104,3 @@ class Connection(Thread):
                 payload = get_packet_payload(line)
                 if len(payload) > 1:
                     self.on_packet_callback(payload)
-
-
-

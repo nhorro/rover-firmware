@@ -141,20 +141,23 @@ void packet_decoder::feed(uint8_t c)
 	(this->*(state_handlers[static_cast<int>(this->current_state)]))();
 }
 
-void packet_decoder::tick()
+void packet_decoder::check_timeout()
 {
-	// timeout
-	if (++this->iteration_counter == this->cmd_timeout)
+	// Handle timeout here	
+	uint32_t t1 = millis();
+	uint32_t dt = this->start_of_packet_t0 > t1 ? 
+		1 + this->start_of_packet_t0 + ~t1 : t1 - this->start_of_packet_t0;
+	if(dt>=PACKET_TIMEOUT_IN_MS)
 	{
-		this->reset();
-	}	
+    	this->reset();
+  	}
 }
 
 void packet_decoder::reset()
 {
 	this->current_state = pkt_state::pkt_state_idle;
 	this->received_payload_index = 0;
-	this->iteration_counter = 0;
+	this->start_of_packet_t0 = millis();
 	this->crc16 = 0;
 }
 

@@ -64,9 +64,9 @@ With Car facing forwards: LF=Left/Front, RB=Right/Back,etc.
 
 | Arduino Due Pin | Raspberry Pi 3B+ Pin | Wire Color |
 | --------------- | -------------------- | ---------- |
-| 10 (RX0)        | 8 (TXD)              | White      |
-| 11 (TX0)        | 10 (RXD)             | Yellow     |
 | GND             | 6 (GND)              | GND        |
+| 19 (RX1)        | 8 (TXD)              | White      |
+| 18 (TX1)        | 10 (RXD)             | Yellow     |
 
 #### Arduino - MPU9250
 
@@ -81,12 +81,31 @@ With Car facing forwards: LF=Left/Front, RB=Right/Back,etc.
 
 | Arduino Due Pin | GPS Pin | Wire Color |
 | --------------- | ------- | ---------- |
-| TODO            |         |            |
-| TODO            |         |            |
-| TODO            |         |            |
-| TODO            |         |            |
+| GND            |         |            |
+| RX2            |         |            |
+| TX2            |         |            |
 
 ## SW interface
+
+The SW protocol uses the following packet format:
+
+```
+"PKT!<payload><crc16>\n"
+```
+
+where:
+
+- "PKT!" is the sync word.
+- Payload is a sequence consisting of up to 64 bytes.
+- crc16 is the crc16 of the payload.
+- \n is the packet terminator.
+
+Two types of packets are used:
+
+- **Commands**: the payload consists of an OPCODE plus command-specific data.
+- **Reports**: the payload consists of a REPORT_ID and report specific data. Two special types of reports are mandatory:
+  - Telemetry.
+  - Command execution status.
 
 ### Commands
 
@@ -111,14 +130,29 @@ Update motor speed values. Each motor speed is specified as an int16 from -255 t
 
 ### Reports
 
-#### 0x00 GENERAL_TELEMETRY_REPORT
+#### 0x80 GENERAL_TELEMETRY_REPORT
 
-| Offset | Parameter                  | Description                                                  |
-| ------ | -------------------------- | ------------------------------------------------------------ |
-| 0      | TMY_PARAM_ACCEPTED_PACKETS | Accepted packets (telemetry request do not increase this counter). |
-| 1      | TMY_PARAM_REJECTED_PACKETS | Rejected packets (telemetry request do not increase this counter). |
-| 2      | TMY_PARAM_LAST_OPCODE      | Last opcode received.                                        |
-| 3      | TMY_PARAM_LAST_ERROR       | Error code from last opcode executed.                        |
+This report is generated in response to a REQUEST_TMY command.
+
+| Offset | Parameter                      | Description                                                  |
+| ------ | ------------------------------ | ------------------------------------------------------------ |
+| 0      | REPORT_TELEMETRY_REQUEST(0x80) | Report Id.                                                   |
+| 1      | TMY_PARAM_ACCEPTED_PACKETS     | Accepted packets (telemetry request do not increase this counter). |
+| 2      | TMY_PARAM_REJECTED_PACKETS     | Rejected packets (telemetry request do not increase this counter). |
+| 3      | TMY_PARAM_LAST_OPCODE          | Last opcode received.                                        |
+| 4      | TMY_PARAM_LAST_ERROR           | Error code from last opcode executed.                        |
+
+#### 0x81 REPORT_COMMAND_EXECUTION_STATUS
+
+This report is generated after a command is executed.
+
+| Offset | Parameter                             | Description                   |
+| ------ | ------------------------------------- | ----------------------------- |
+| 0      | REPORT_COMMAND_EXECUTION_STATUS(0x81) | Report Id.                    |
+| 1      | OPCODE                                | Executed opcode.              |
+| 2      | STATUS_CODE                           | Opcode execution status code. |
+
+
 
 ## Firmware build instructions
 
@@ -140,10 +174,17 @@ arduino-cli upload -p /dev/ttyACM0 --fqbn arduino:sam:arduino_due_x rover-firmwa
 
 ## Firmware tests
 
-See [RoverBasicBenchTest.ipynb](python/RoverBasicBenchTest.ipynb)
+Jupyter: see [RoverBasicBenchTest.ipynb](python/RoverBasicBenchTest.ipynb)
 
 ```bash
 cd python
 jupyter notebook
+```
+
+or:
+
+```bash
+cd python
+python rover_test.py # or python silent_rover_test.py
 ```
 

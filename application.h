@@ -5,10 +5,14 @@
 
 #include <stdint.h>
 #include "protocol.h"
-#include "tctm/cmd_def.h"
-#include "tctm/tmy_def.h"
+#include "tctm/cmd_def.h" 		// Opcodes definition
+#include "tctm/tmy_def.h"		// Telemetry definition
+#include "tctm/report_def.h"	// Report definition
 
 #include "l298n_motor_control.h"
+
+#define SerialIF 				Serial1 // Use Serial1 to avoid problems with Serial0 and USB.
+#define APP_SERIAL_IF_BAUDRATE	115200
 
 class application: 
 	public protocol::packet_decoder,
@@ -23,10 +27,6 @@ private:
 	using opcode_callback = application::error_code(application::*)(const uint8_t* payload, uint8_t n);
 	opcode_callback opcode_callbacks[OPCODE_LAST];
 
-	/* Application objects */
-	l298_motor_control motor_ctl;
-	int16_t speeds[2] = { 0, 0 };
-
 	/* required by packet_decoder */
 	void handle_packet(const uint8_t* payload, uint8_t n) override;
 	void set_error(error_code ec) override;
@@ -36,7 +36,17 @@ private:
 	application::error_code request_tmy(const uint8_t* payload, uint8_t n);
 	application::error_code led_on(const uint8_t* payload, uint8_t n);
 	application::error_code led_off(const uint8_t* payload, uint8_t n);
+
+	/* Commands :: Application Specific */
+
+	// BEGIN Application Specific Commands here
 	application::error_code update_motor_speeds(const uint8_t* payload, uint8_t n);
+	// END Application Specific Commands here
+
+	// BEGIN Application Specific Data here
+	l298_motor_control motor_ctl;
+	int16_t speeds[2] = { 0, 0 };
+	// END Application Specific Data here
 };
 
 #endif // ROVER_APPLICATION_H

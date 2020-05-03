@@ -2,12 +2,15 @@
 #define PACKET_DECODER_H
 
 #include <stdint.h>
+#include <Arduino.h> // millis
 
 namespace protocol {
 
 #define HEADER_SIZE (4+1) /* SYNC + LENGTH */
 #define PAYLOAD_BUFFER_SIZE 64
 #define TRAILER_SIZE (2+1) /* CRC16 + TERMINATOR */
+
+#define PACKET_TIMEOUT_IN_MS 1000
 
 const char PACKET_SYNC_0_CHAR = 'P';
 const char PACKET_SYNC_1_CHAR = 'K';
@@ -51,7 +54,7 @@ public:
 	packet_decoder();
 
 	void feed(uint8_t c);
-	void tick();
+	void check_timeout();
 	void reset();
 
 	/** Overriden by user */
@@ -74,7 +77,7 @@ private:
 	using packet_state_handler = void(packet_decoder::*)(void);
 	packet_state_handler state_handlers[pkt_state::pkt_state_last];
 
-	uint32_t iteration_counter;
+	uint32_t start_of_packet_t0;
 	pkt_state current_state;
 	uint8_t received_payload_buffer[PAYLOAD_BUFFER_SIZE + 1];
 	uint8_t received_payload_index;
