@@ -12,6 +12,8 @@ namespace protocol {
 
 #define PACKET_TIMEOUT_IN_MS 1000
 
+#define HEARTBEAT_TIMEOUT_IN_MS 3000
+
 const char PACKET_SYNC_0_CHAR = 'P';
 const char PACKET_SYNC_1_CHAR = 'K';
 const char PACKET_SYNC_2_CHAR = 'T';
@@ -54,12 +56,13 @@ public:
 	packet_decoder();
 
 	void feed(uint8_t c);
-	void check_timeout();
+	void check_timeouts();
 	void reset();
 
 	/** Overriden by user */
 	virtual void handle_packet(const uint8_t* payload, uint8_t n) = 0;
 	virtual void set_error(error_code ec) = 0;	
+	virtual void handle_connection_lost() = 0;
 private:
 	enum pkt_state
 	{
@@ -77,7 +80,10 @@ private:
 	using packet_state_handler = void(packet_decoder::*)(void);
 	packet_state_handler state_handlers[pkt_state::pkt_state_last];
 
+	// Times
 	uint32_t start_of_packet_t0;
+	uint32_t last_received_packet_t0;
+
 	pkt_state current_state;
 	uint8_t received_payload_buffer[PAYLOAD_BUFFER_SIZE + 1];
 	uint8_t received_payload_index;

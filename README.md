@@ -17,6 +17,7 @@ Current implementation status:
 ## Dependencies
 
 - [arduino-cli](https://github.com/arduino/arduino-cli)
+- [Bolder Flight Dynamics MPU9250](https://github.com/bolderflight/MPU9250)
 
 ## Rover hardware setup
 
@@ -72,10 +73,10 @@ With Car facing forwards: LF=Left/Front, RB=Right/Back,etc.
 
 | Arduino Due Pin | MPU9250 Pin | Wire Color |
 | --------------- | ----------- | ---------- |
-| TODO            |             |            |
-| TODO            |             |            |
-| TODO            |             |            |
-| TODO            |             |            |
+| VCC             | 3.3V        | Red        |
+| GND             | GND         | Black      |
+| SDA (20)        | SDA         | Greem      |
+| SCL (21)        | SCL         | Yellow     |
 
 #### Arduino - GPS
 

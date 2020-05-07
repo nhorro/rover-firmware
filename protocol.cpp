@@ -15,6 +15,7 @@ packet_decoder::packet_decoder()
 			&packet_decoder::handle_pkt_state_expecting_crc2,
 			&packet_decoder::handle_pkt_state_expecting_terminator
 		}
+	, last_received_packet_t0(millis())
 {
 	this->reset();
 }
@@ -123,6 +124,7 @@ void packet_decoder::handle_pkt_state_expecting_terminator()
 {
 	if (PACKET_TERMINATOR_CHAR == this->last_received_char)
 	{
+		this->last_received_packet_t0 = millis();
 		this->handle_packet(this->received_payload_buffer,
 				this->received_payload_index);
 	}
@@ -141,16 +143,27 @@ void packet_decoder::feed(uint8_t c)
 	(this->*(state_handlers[static_cast<int>(this->current_state)]))();
 }
 
-void packet_decoder::check_timeout()
+void packet_decoder::check_timeouts()
 {
-	// Handle timeout here	
+	// Handle timeouts here	
 	uint32_t t1 = millis();
+
+	// Check timeout of current packet being processed
 	uint32_t dt = this->start_of_packet_t0 > t1 ? 
 		1 + this->start_of_packet_t0 + ~t1 : t1 - this->start_of_packet_t0;
 	if(dt>=PACKET_TIMEOUT_IN_MS)
 	{
     	this->reset();
   	}
+
+  	// Check heartbeat timeout
+	dt = this->last_received_packet_t0 > t1 ? 
+		1 + this->last_received_packet_t0 + ~t1 : t1 - this->last_received_packet_t0;
+	if(dt>HEARTBEAT_TIMEOUT_IN_MS)
+	{
+    	this->handle_connection_lost();
+  	}
+
 }
 
 void packet_decoder::reset()
