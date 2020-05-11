@@ -27,7 +27,7 @@ bool imu_ahrs::setup()
 
 void imu_ahrs::update()
 {
-	if(this->status>0)
+	if(this->status>=0)
 	{
 		this->readSensor();	
 	}
@@ -35,7 +35,7 @@ void imu_ahrs::update()
 
 void imu_ahrs::read_values(float* dst)
 {
-	if(this->status>0)
+	if( this->status>=0 )
 	{
 		dst[0] = this->getAccelX_mss();
 		dst[1] = this->getAccelY_mss();
@@ -50,5 +50,22 @@ void imu_ahrs::read_values(float* dst)
 		dst[8] = this->getMagZ_uT();
 
 		dst[9] = this->getTemperature_C();
+	}
+	else
+	{
+		// TODO: estimate
+		dst[0] = 0.0;
+		dst[1] = 0.0;
+		dst[2] = 0.0;
+
+		dst[3] = 0.0;
+		dst[4] = 0.0;
+		dst[5] = 0.0;
+
+		dst[6] = 0.0;
+		dst[7] = 0.0;
+		dst[8] = 0.0;
+
+		dst[9] = 0.0;
 	}
 }

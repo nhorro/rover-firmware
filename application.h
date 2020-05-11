@@ -12,10 +12,8 @@
 #include "l298n_motor_control.h"
 #include "imu_ahrs.h"
 
-#define SerialIF 				Serial1 // Use Serial1 to avoid problems with Serial0 and USB.
-#define APP_SERIAL_IF_BAUDRATE	115200
+#include "config.h"
 
-#define IMU_UPDATE_FREQ 40
 
 class application: 
 	public protocol::packet_decoder,
@@ -27,8 +25,21 @@ public:
 	void loop();
 private:
 	uint8_t tmy[TMY_PARAM_LAST] __attribute__((aligned (4)));
+	float imu_state[10];
 	using opcode_callback = application::error_code(application::*)(const uint8_t* payload, uint8_t n);
-	opcode_callback opcode_callbacks[OPCODE_LAST];
+
+	enum opcode_flags {
+		default_flags 				   	= 0x00,
+		update_execution_counters		= 0x01,
+		enable_execution_status_report 	= 0x02
+	};
+
+	struct opcode_descr {
+		opcode_callback fn;
+		uint8_t flags;
+	};
+
+	opcode_descr opcodes[OPCODE_LAST];
 
 	/* required by packet_decoder */
 	void handle_packet(const uint8_t* payload, uint8_t n) override;
@@ -47,6 +58,7 @@ private:
 	application::error_code update_motor_speeds(const uint8_t* payload, uint8_t n);
 
 	void send_imu_report();
+	void send_general_tmy_report();
 	// END Application Specific Commands here
 
 	// BEGIN Application Specific Data here

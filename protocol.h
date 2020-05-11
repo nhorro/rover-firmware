@@ -12,7 +12,7 @@ namespace protocol {
 
 #define PACKET_TIMEOUT_IN_MS 1000
 
-#define HEARTBEAT_TIMEOUT_IN_MS 3000
+#define HEARTBEAT_TIMEOUT_IN_MS 1000
 
 const char PACKET_SYNC_0_CHAR = 'P';
 const char PACKET_SYNC_1_CHAR = 'K';
@@ -30,7 +30,7 @@ public:
 	/** Overriden by user */
 	virtual void send_impl(const uint8_t* buf, uint8_t n) = 0;
 private:
-	uint8_t buffer[HEADER_SIZE+PAYLOAD_BUFFER_SIZE+TRAILER_SIZE];
+	uint8_t buffer[HEADER_SIZE+PAYLOAD_BUFFER_SIZE+TRAILER_SIZE] __attribute__((aligned (4)));
 
 protected:
 	void calc_crc_and_close_packet(uint8_t length);

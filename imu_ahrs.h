@@ -10,6 +10,7 @@ public:
   	bool setup();
   	void update();
   	void read_values(float* dst);
+  	inline int get_status() const { return this->status; }
 private:  
 	int status;
 };

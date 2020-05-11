@@ -3,7 +3,7 @@
 
 enum report_index_e {
 	// Basic application reports
-	REPORT_TELEMETRY_REQUEST       					=	0x80,
+	REPORT_GENERAL_TELEMETRY       					=	0x80,
 	REPORT_COMMAND_EXECUTION_STATUS					=	0x81,
 
 	// BEGIN Application Specific Reports here

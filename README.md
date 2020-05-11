@@ -9,7 +9,7 @@ Current implementation status:
 | Telecommand and Telemetry serial interface.                | :heavy_check_mark: |
 | Basic motor control with L298N.                            | :heavy_check_mark: |
 | Motor control with velocity profiles.                      |                    |
-| Navigation & State Estimation - AHRS with MPU9250.         |                    |
+| Navigation & State Estimation - AHRS with MPU9250.         | :heavy_check_mark: |
 | Navigation & State Estimation - GPS.                       |                    |
 | Navigation & State Estimation - Odometry (wheel encoders). |                    |
 | Navigation & State Estimation - Data fusion.               |                    |
@@ -82,9 +82,9 @@ With Car facing forwards: LF=Left/Front, RB=Right/Back,etc.
 
 | Arduino Due Pin | GPS Pin | Wire Color |
 | --------------- | ------- | ---------- |
-| GND            |         |            |
-| RX2            |         |            |
-| TX2            |         |            |
+| GND             |         |            |
+| RX2             |         |            |
+| TX2             |         |            |
 
 ## SW interface
 
@@ -152,8 +152,6 @@ This report is generated after a command is executed.
 | 0      | REPORT_COMMAND_EXECUTION_STATUS(0x81) | Report Id.                    |
 | 1      | OPCODE                                | Executed opcode.              |
 | 2      | STATUS_CODE                           | Opcode execution status code. |
-
-
 
 ## Firmware build instructions
 
