@@ -16,8 +16,14 @@ application::application() :
 
 			// END Application Specific Commands here
 		}
+	, periodic_tasks 
+		{
+			{ true, millis(), (1000/IMU_UPDATE_FREQ), &application::update_imu }, 
+			{ true, millis(), (1000/IMU_REPORT_FREQ), &application::send_imu_report }, 
+			{ true, millis(), (1000/GENERAL_TMY_REPORT_FREQ), &application::send_general_tmy_report }
+		}
 {
-
+	
 }
 
 void application::setup()
@@ -38,7 +44,6 @@ void application::setup()
 	{
 		this->tmy[TMY_PARAM_STATUS] |= STATUS_GPS_FAIL;
 	}
-	
 	// END Application Setup  Code here
 }
 
@@ -58,42 +63,21 @@ void application::loop()
 		1 + this->control_cycle_t0 + ~t1 : t1 - this->control_cycle_t0;
 	if(dt>=1000)
 	{
+		this->control_cycle_t0 = millis();
+		this->align_periodic_tasks_with_control_cycle();
+
 		// Blink led until first command is received. 
 		// Used as an indicator that SW is running.
 		if(this->tmy[TMY_PARAM_ACCEPTED_PACKETS]==0)
 		{
 			digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));	
 		}		
-    	this->control_cycle_t0 = millis();
   	}
 
 	// BEGIN Application Code here
-
-	// Update IMU at 25Hz
-	/* Note that data should be read at or above the selected rate. 
-	   In order to prevent aliasing, the data should be sampled at twice 
-	   the frequency of the DLPF bandwidth or higher. For example, 
-	   this means for a DLPF bandwidth set to 41 Hz, the data output 
-	   rate and data collection should be at frequencies of 82 Hz or higher.
-	*/
-	if( dt>= (1000/IMU_UPDATE_FREQ) )
-	{		
-		if( !this->tmy[TMY_PARAM_STATUS] & STATUS_AHRS_FAIL )
-		{
-			this->imu.update();
-		}
-	}
-	if( dt>= (1000/IMU_REPORT_FREQ) )
-	{		
-		this->send_imu_report();	
-	}
-
-	if( dt>= (1000/GENERAL_TMY_REPORT_FREQ) )
-	{		
-		this->send_general_tmy_report();
-	}
-
 	// END Application Code here
+
+	this->execute_periodic_tasks(t1);
 	this->check_timeouts();
 }
 
@@ -149,6 +133,31 @@ void application::handle_connection_lost()
 	this->motor_ctl.update_motor_speeds(this->speeds, 
 		l298_motor_control::motor_control_flags::motor_a|
 		l298_motor_control::motor_control_flags::motor_b );
+}
+
+void application::align_periodic_tasks_with_control_cycle()
+{
+	for(int i;i<N_PERIODIC_TASKS;i++)
+	{
+		this->periodic_tasks[i].t0 = this->control_cycle_t0;
+	}	
+}
+
+void application::execute_periodic_tasks(uint32_t t)
+{
+	for(int i;i<N_PERIODIC_TASKS;i++)
+	{
+		if( this->periodic_tasks[i].enabled)
+		{
+			uint32_t dt = this->periodic_tasks[i].t0  > t ? 
+				1 + this->periodic_tasks[i].t0  + ~t : t - this->periodic_tasks[i].t0;
+			if(dt>=this->periodic_tasks[i].period)
+			{	
+				this->periodic_tasks[i].t0 = t;			
+				(this->*(this->periodic_tasks[i].entrypoint))();
+			}	
+		}
+	}
 }
 
 /* Opcodes */
@@ -209,4 +218,19 @@ void application::send_imu_report()
 			 reinterpret_cast<uint8_t*>(this->imu_state), 40);	
 	this->send(4 + 40 );
 	// END Application TMY Handling here	
+}
+
+void application::update_imu()
+{	
+	// Update IMU at 25Hz
+	/* Note that data should be read at or above the selected rate. 
+	   In order to prevent aliasing, the data should be sampled at twice 
+	   the frequency of the DLPF bandwidth or higher. For example, 
+	   this means for a DLPF bandwidth set to 41 Hz, the data output 
+	   rate and data collection should be at frequencies of 82 Hz or higher.
+	*/
+	if( !this->tmy[TMY_PARAM_STATUS] & STATUS_AHRS_FAIL )
+	{
+		this->imu.update();	
+	}
 }

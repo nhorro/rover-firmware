@@ -14,6 +14,7 @@
 
 #include "config.h"
 
+#define N_PERIODIC_TASKS 3
 
 class application: 
 	public protocol::packet_decoder,
@@ -57,6 +58,7 @@ private:
 	// BEGIN Application Specific Commands here
 	application::error_code update_motor_speeds(const uint8_t* payload, uint8_t n);
 
+	void update_imu();
 	void send_imu_report();
 	void send_general_tmy_report();
 	// END Application Specific Commands here
@@ -69,6 +71,20 @@ private:
 
 	uint32_t control_cycle_t0;
 	// END Application Specific Data here
+
+
+	struct periodic_task_entry {
+		bool enabled;
+		uint32_t t0;
+		uint32_t period;
+		using periodic_task_entrypoint = void(application::*)();	
+		periodic_task_entrypoint entrypoint;
+	};
+
+	periodic_task_entry periodic_tasks[N_PERIODIC_TASKS];
+
+	void align_periodic_tasks_with_control_cycle();
+	void execute_periodic_tasks(uint32_t t);
 };
 
 #endif // ROVER_APPLICATION_H

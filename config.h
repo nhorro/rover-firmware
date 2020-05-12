@@ -3,8 +3,8 @@
 
 /* Serial Configuration */
 
-//#define SerialIF 				Serial  // Use Serial0 (USB) for development with desktop PC.
-#define SerialIF 				Serial1 // Use Serial1 with Pi to avoid problems with Serial0 and USB.
+#define SerialIF 				Serial  // Use Serial0 (USB) for development with desktop PC.
+//#define SerialIF 				Serial1 // Use Serial1 with Pi to avoid problems with Serial0 and USB.
 
 #define APP_SERIAL_IF_BAUDRATE	115200
 
@@ -13,8 +13,8 @@
 #define GENERAL_TMY_REPORT_FREQ 	 1
 
 /* IMU/AHRS Configuration */
-#define IMU_UPDATE_FREQ 		40
-#define IMU_REPORT_FREQ 		1
+#define IMU_UPDATE_FREQ 			40
+#define IMU_REPORT_FREQ 		 	 5
 
 
 #endif
