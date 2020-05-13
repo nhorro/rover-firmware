@@ -8,6 +8,9 @@
 
 #define APP_SERIAL_IF_BAUDRATE	115200
 
+#define PACKET_TIMEOUT_IN_MS 	1000
+#define HEARTBEAT_TIMEOUT_IN_MS 1000
+
 
 /* General report frequency*/
 #define GENERAL_TMY_REPORT_FREQ 	 1

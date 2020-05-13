@@ -68,7 +68,7 @@ void application::loop()
 
 		// Blink led until first command is received. 
 		// Used as an indicator that SW is running.
-		if(this->tmy[TMY_PARAM_ACCEPTED_PACKETS]==0)
+		//if(this->tmy[TMY_PARAM_ACCEPTED_PACKETS]==0)
 		{
 			digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));	
 		}		
@@ -127,6 +127,8 @@ void application::send_impl(const uint8_t* buf, uint8_t n)
 
 void application::handle_connection_lost()
 {
+	//REQUEST_EXTERNAL_RESET
+
 	//shutdown motors
 	this->speeds[0] = 0;
 	this->speeds[1] = 0;

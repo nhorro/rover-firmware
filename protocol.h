@@ -1,6 +1,7 @@
 #ifndef PACKET_DECODER_H
 #define PACKET_DECODER_H
 
+#include "config.h"
 #include <stdint.h>
 #include <Arduino.h> // millis
 
@@ -10,15 +11,15 @@ namespace protocol {
 #define PAYLOAD_BUFFER_SIZE 64
 #define TRAILER_SIZE (2+1) /* CRC16 + TERMINATOR */
 
-#define PACKET_TIMEOUT_IN_MS 1000
-
-#define HEARTBEAT_TIMEOUT_IN_MS 1000
+#define MAX_PACKET_SIZE = HEADER_SIZE + PAYLOAD_BUFFER_SIZE + TRAILER_SIZE
 
 const char PACKET_SYNC_0_CHAR = 'P';
 const char PACKET_SYNC_1_CHAR = 'K';
 const char PACKET_SYNC_2_CHAR = 'T';
 const char PACKET_SYNC_3_CHAR = '!';
 const char PACKET_TERMINATOR_CHAR = '\n';
+
+
 
 class packet_encoder
 {
