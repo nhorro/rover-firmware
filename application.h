@@ -10,7 +10,7 @@
 #include "tctm/report_def.h"	// Report definition
 
 #include "l298n_motor_control.h"
-#include "imu_ahrs.h"
+#include "mpu9250_ahrs.h"
 
 #include "config.h"
 
@@ -67,7 +67,7 @@ private:
 	l298_motor_control motor_ctl;
 	int16_t speeds[2] = { 0, 0 };
 
-	imu_ahrs imu;
+	mpu9250 imu;
 
 	uint32_t control_cycle_t0;
 	// END Application Specific Data here

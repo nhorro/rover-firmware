@@ -35,7 +35,11 @@ void application::setup()
 	this->motor_ctl.setup();
 
 	//
-	if ( !this->imu.setup() )
+	if ( this->imu.setup() )
+	{
+		this->imu.set_mag_bias_correction( -4.798046398046397, 231.2808302808303, 30.96239316239316); // see notebook		
+	}
+	else
 	{
 		this->tmy[TMY_PARAM_STATUS] |= STATUS_AHRS_FAIL;
 	}
@@ -214,25 +218,19 @@ void application::send_imu_report()
 	this->get_payload_buffer()[2] = 0; // spare
 	this->get_payload_buffer()[3] = 0; // spare 
 
-	// TODO FIXME eliminar copia
-	this->imu.read_values( this->imu_state );
 	memcpy(  &this->get_payload_buffer()[4], 
-			 reinterpret_cast<uint8_t*>(this->imu_state), 40);	
+			 reinterpret_cast<const uint8_t*>(this->imu.get_processed_values()), 40);	
 	this->send(4 + 40 );
 	// END Application TMY Handling here	
 }
 
 void application::update_imu()
 {	
-	// Update IMU at 25Hz
-	/* Note that data should be read at or above the selected rate. 
-	   In order to prevent aliasing, the data should be sampled at twice 
-	   the frequency of the DLPF bandwidth or higher. For example, 
-	   this means for a DLPF bandwidth set to 41 Hz, the data output 
-	   rate and data collection should be at frequencies of 82 Hz or higher.
-	*/
 	if( !this->tmy[TMY_PARAM_STATUS] & STATUS_AHRS_FAIL )
 	{
-		this->imu.update();	
+        this->imu.read();
+        this->imu.transform_units();
+        this->imu.calc_euler_angles_from_accmag();  
+        this->imu.integrate_gyro_angles(millis());
 	}
 }
