@@ -28,6 +28,7 @@ application::application() :
 
 void application::setup()
 {
+	Wire.begin();
 	SerialIF.begin(APP_SERIAL_IF_BAUDRATE);
 	pinMode(LED_BUILTIN, OUTPUT);
 
@@ -35,7 +36,7 @@ void application::setup()
 	this->motor_ctl.setup();
 
 	//
-	if ( this->imu.setup() )
+	if ( this->imu.setup() >= 0 )
 	{
 		this->imu.set_mag_bias_correction( -4.798046398046397, 231.2808302808303, 30.96239316239316); // see notebook		
 	}
@@ -218,9 +219,20 @@ void application::send_imu_report()
 	this->get_payload_buffer()[2] = 0; // spare
 	this->get_payload_buffer()[3] = 0; // spare 
 
+	// BEGIN Application TMY Handling here			
+	this->get_payload_buffer()[0] = REPORT_IMU_AHRS_STATE;
+	this->get_payload_buffer()[1] = (this->imu.get_status()) >= 0 ? true : false;
+	this->get_payload_buffer()[2] = 0; // spare
+	this->get_payload_buffer()[3] = 0; // spare 
+
 	memcpy(  &this->get_payload_buffer()[4], 
 			 reinterpret_cast<const uint8_t*>(this->imu.get_processed_values()), 40);	
-	this->send(4 + 40 );
+	memcpy(  &this->get_payload_buffer()[4+40], 
+			 reinterpret_cast<const uint8_t*>(this->imu.get_magacc_euler_angles()), 12);	
+	memcpy(  &this->get_payload_buffer()[4+40+12], 
+			 reinterpret_cast<const uint8_t*>(this->imu.get_gyro_euler_angles()), 12);	
+
+	this->send(4 + (10*4) + (3*4) + (3*4) );
 	// END Application TMY Handling here	
 }
 
